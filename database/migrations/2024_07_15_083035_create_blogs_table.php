@@ -16,6 +16,7 @@ return new class extends Migration
             function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('category_id');
+                $table->string('image')->nullable();
                 $table->string('title');
                 $table->string('slug');
                 $table->text('excerpt');

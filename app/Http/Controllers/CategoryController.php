@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Blog;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use Termwind\Components\Dd;
+use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
@@ -14,7 +16,15 @@ class CategoryController extends Controller
     public function index()
     {
         // $posts = Blog::all();
-        return view('categories.index',   ['categories' => Category::all()]);
+        $categories = Category::latest();
+
+        if (request('search')) {
+            $categories->where('title', 'like', '%' . request('search') . '%');
+        }
+
+
+        return view('categories.index',   ['categories' => $categories->paginate(5)->withQueryString()]);
+        // return view('categories.index',   ['categories' => Category::all()]);
     }
     /**
      * Show the form for creating a new resource.
@@ -31,17 +41,20 @@ class CategoryController extends Controller
     {
 
         // dd($request);
-        // $request->validate([
-        //     'title' => 'required|min:3'
-        // ]);
 
-        $data = [
-            'title' => $request->input('title'),
-            'slug' => $request->input('slug'),
-        ];
+
+        $data = $request->validate([
+            'title' => 'required|min:5|unique:categories',
+        ]);
+
+        $data['slug'] = Str::slug($request->input('title'));
+        // $data = [
+        //     'title' => $request->input('title'),
+        //     'slug' => Str::slug($request->input('title')),
+        // ];
 
         Category::create($data);
-        return redirect('/categories');
+        return redirect('/categories')->with('success', 'data sussesfully added');
     }
 
 
@@ -56,9 +69,9 @@ class CategoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $slug)
+    public function edit(string $id)
     {
-        return view('categories.edit',  ['category' => Category::find($slug)]);
+        return view('categories.edit',  ['category' => Category::where('slug', $id)->first()]);
     }
 
     /**
@@ -68,10 +81,14 @@ class CategoryController extends Controller
     {
         $data = [
             'title' => $request->input('title'),
-            'slug' => $request->input('slug'),
+            'slug' => Str::slug($request->input('title')),
         ];
+        // $data = $request->validate([
+        //     'title' => 'required|min:5|unique:categories',
+        // ]);
+        // $data['slug'] = Str::slug($request->input('title'));
 
-        Category::where('id', $id)->update($data);
+        Category::where('slug', $id)->update($data);
         return redirect('/categories');
     }
 
@@ -80,7 +97,14 @@ class CategoryController extends Controller
      */
     public function destroy(string $id)
     {
-        Category::where('id', $id)->delete();
-        return redirect('/categories');
+        $countEloquent = Blog::where('category_id', $id)->count();
+
+        if ($countEloquent > 0) {
+            $message = "Tidak bisa hapus category ini karna masih di gunakan oleh $countEloquent blog";
+            return redirect('/categories')->with('message', $message);
+        } else {
+            Category::where('id', $id)->delete();
+            return redirect('/categories');
+        }
     }
 }

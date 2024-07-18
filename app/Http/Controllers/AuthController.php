@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -11,7 +16,24 @@ class AuthController extends Controller
      */
     public function index()
     {
-        //
+        // return view('auth.index', ['users' => User::all()]);
+        $users = User::latest();
+        if (request('search')) {
+            $users->where('username', 'like', '%' . request('search') . '%');
+        }
+
+
+        return view('auth.index',   ['users' => $users->paginate(5)->withQueryString()]);
+    }
+
+    public function indexRegister()
+    {
+        return view('auth/register');
+    }
+
+    public function indexLogin()
+    {
+        return view('auth/login');
     }
 
     /**
@@ -25,11 +47,38 @@ class AuthController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function storeRegister(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'username' => ['required', 'min:3', 'max:255', 'unique:users'],
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:5|max:255'
+        ]);
+
+        // $validatedData['password'] = bcrypt($validatedData['password']);
+        $validatedData['password'] = Hash::make($validatedData['password']);
+
+        User::create($validatedData);
+
+        // $request->session()->flash('success', 'Registration successfull! Please login');
+
+        return redirect('/login')->with('success', 'Registration successfull, Please login! ');
     }
 
+    public function storeLogin(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+            return redirect()->intended('/');
+        }
+
+        return back()->with('loginError', 'Login failed!');
+    }
     /**
      * Display the specified resource.
      */
@@ -57,8 +106,14 @@ class AuthController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy()
     {
-        //
+        Auth::logout();
+
+        request()->session()->invalidate();
+
+        request()->session()->regenerateToken();
+
+        return redirect('/login');
     }
 }
