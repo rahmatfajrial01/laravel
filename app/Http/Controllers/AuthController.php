@@ -14,6 +14,12 @@ class AuthController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public function profile()
+    {
+        return view('auth.profile');
+    }
+
+
     public function index()
     {
         // return view('auth.index', ['users' => User::all()]);
@@ -23,7 +29,7 @@ class AuthController extends Controller
         }
 
 
-        return view('auth.index',   ['users' => $users->paginate(5)->withQueryString()]);
+        return view('admin/users/index',   ['users' => $users->paginate(5)->withQueryString()]);
     }
 
     public function indexRegister()
@@ -100,7 +106,13 @@ class AuthController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $data = [
+            'role' => $request->input('role'),
+        ];
+
+
+        User::where('id', $id)->update($data);
+        return redirect('/admin/users');
     }
 
     /**

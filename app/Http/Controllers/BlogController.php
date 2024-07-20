@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Blog;
 use App\Models\Category;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class BlogController extends Controller
 {
@@ -17,7 +19,9 @@ class BlogController extends Controller
     {
         // $posts = Blog::all();
         // return view('blogs/index',   ['blogs' => Blog::all()]);
-        $blogs = Blog::latest();
+        $userId = Auth::id();
+        $blogs = Blog::latest()->where('user_id', $userId);
+
         if (request('search')) {
             $blogs->where('title', 'like', '%' . request('search') . '%');
         }
@@ -45,6 +49,7 @@ class BlogController extends Controller
     {
         $data = [
             'category_id' => $request->input('category_id'),
+            'user_id' => $request->input('user_id'),
             'title' => $request->input('title'),
             'image' => $request->file('image')->store('blog-images'),
             'slug' =>  Str::slug($request->input('title')),

@@ -23,7 +23,7 @@ class CategoryController extends Controller
         }
 
 
-        return view('categories.index',   ['categories' => $categories->paginate(5)->withQueryString()]);
+        return view('admin.categories.index',   ['categories' => $categories->paginate(5)->withQueryString()]);
         // return view('categories.index',   ['categories' => Category::all()]);
     }
     /**
@@ -31,7 +31,7 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        return view('categories.create');
+        return view('admin.categories.create');
     }
 
     /**
@@ -54,7 +54,7 @@ class CategoryController extends Controller
         // ];
 
         Category::create($data);
-        return redirect('/categories')->with('success', 'data sussesfully added');
+        return redirect('/admin/categories')->with('success', 'data sussesfully added');
     }
 
 
@@ -63,7 +63,7 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {
-        return view('categories.show',  ['category' => Category::find($id)]);
+        return view('admin.categories.show',  ['category' => Category::find($id)]);
     }
 
     /**
@@ -71,7 +71,7 @@ class CategoryController extends Controller
      */
     public function edit(string $id)
     {
-        return view('categories.edit',  ['category' => Category::where('slug', $id)->first()]);
+        return view('admin.categories.edit',  ['category' => Category::where('slug', $id)->first()]);
     }
 
     /**
@@ -89,7 +89,7 @@ class CategoryController extends Controller
         // $data['slug'] = Str::slug($request->input('title'));
 
         Category::where('slug', $id)->update($data);
-        return redirect('/categories');
+        return redirect('/admin/categories');
     }
 
     /**
@@ -101,10 +101,10 @@ class CategoryController extends Controller
 
         if ($countEloquent > 0) {
             $message = "Tidak bisa hapus category ini karna masih di gunakan oleh $countEloquent blog";
-            return redirect('/categories')->with('message', $message);
+            return redirect('/admin/categories')->with('message', $message);
         } else {
             Category::where('id', $id)->delete();
-            return redirect('/categories');
+            return redirect('/admin/categories');
         }
     }
 }

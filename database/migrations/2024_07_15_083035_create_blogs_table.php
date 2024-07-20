@@ -16,11 +16,13 @@ return new class extends Migration
             function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('category_id');
+                $table->foreignId('user_id');
                 $table->string('image')->nullable();
                 $table->string('title');
                 $table->string('slug');
                 $table->text('excerpt');
                 $table->text('body');
+                $table->string('status')->default('active');
                 $table->timestamp('publised_at')->nullable();
                 $table->timestamps();
             }
